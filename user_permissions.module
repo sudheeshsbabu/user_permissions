@@ -220,7 +220,7 @@ function user_permissions_node_access(\Drupal\Core\Entity\EntityInterface $entit
   $ownerId = $entity->getOwnerId();
   $isPublished = $entity->isPublished();
   $required_permission = [];
-  kint($permissions); die;
+  //kint($permissions); die;
   $permissionStatus = checkPermissions($account, $operation, $isPublished, $nodeType, $permissions, $ownerId);
   if ($permissionStatus) {
     return AccessResult::neutral();
@@ -243,11 +243,14 @@ function checkPermissions($account, $operation, $isPublished, $nodeType, $permis
   }
   // Set required permissions list
   if ($operation == 'view' && $isPublished) {
-    $required_permission[] = 'access content';
+    if (!$ownItem) {
+      $required_permission[] = 'access content';
+    } else {
+      $required_permission[] = "view own " . $nodeType . " content";
+    }
   }
   if ($operation == 'view' && !$isPublished) {
     $required_permission[] = "view own unpublished content";
-    $required_permission[] = "view own " . $nodeType . " content";
   }
   if ($operation == 'update' && $ownItem) {
     $required_permission[] = "edit own " . $nodeType . " content";
@@ -261,10 +264,12 @@ function checkPermissions($account, $operation, $isPublished, $nodeType, $permis
   if ($operation == 'delete' && !$ownItem) {
     $required_permission[] = "delete any " . $nodeType . " content";
   }
-  kint($operation);
-  kint($required_permission);
+  //kint($operation);
+  //kint($required_permission);
   foreach($required_permission as $required_permission) {
-    kint($account->hasPermission($permission));die;
+    //kint($account->hasPermission($permission));
+    //kint(in_array($required_permission, $permissions));
+    //die;
     if (!$account->hasPermission($required_permission) || !in_array($required_permission, $permissions)) {
       $noPermission = true;
       break;

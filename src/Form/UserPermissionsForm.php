@@ -85,17 +85,12 @@ class UserPermissionsForm extends UserPermissionsRoleSpecificForm {
     $role_name = '_user_role_' . $uid;
     // Check for the existence of this role.
     $role = Role::load($role_name);
+    //kint($role);die;
 
     if ($role) {
       // If role exists, use this for the UserPermissionsRoleSpecificForm.
       $this->userRole = Role::load($role_name);
       $form = parent::buildForm($form, $form_state, $this->userRole);
-      // Show only content permissions.
-      foreach ($form['permissions'] as $key=>$value) {
-        if (!preg_match('/^#/', $key) && !preg_match('/^node.*/', $key) && !preg_match('/content/', $key)) {
-          unset($form['permissions'][$key]);
-        }
-      }
     }
     else {
       // If role does not exists,
@@ -111,7 +106,14 @@ class UserPermissionsForm extends UserPermissionsRoleSpecificForm {
       $form['permissions'][$this->userRole->id()]['#default_value'] = [];
       $form['role_names']['#value'][$this->userRole->id()] = $role_name;
     }
+    // Show only content permissions.
+    foreach ($form['permissions'] as $key=>$value) {
+      if (!preg_match('/^#/', $key) && !preg_match('/^node.*/', $key) && !preg_match('/content/', $key)) {
+        unset($form['permissions'][$key]);
+      }
+    }
     // Check for blocked permissions.
+    /**
     $blocked_permissions = [];
     $permission_list = [];
     $user_roles = $this->user->getRoles();
@@ -130,6 +132,7 @@ class UserPermissionsForm extends UserPermissionsRoleSpecificForm {
         $form['permissions'][$permission][$rid]['#attributes']['checked'] = TRUE;
       }
     }
+    */
     $form['role_names'][$this->userRole->id()]['#markup'] = 'Enable?';
     $form['role_name'] = [
       '#type' => 'hidden',
