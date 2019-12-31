@@ -85,7 +85,6 @@ class UserPermissionsForm extends UserPermissionsRoleSpecificForm {
     $role_name = '_user_role_' . $uid;
     // Check for the existence of this role.
     $role = Role::load($role_name);
-    //kint($role);die;
 
     if ($role) {
       // If role exists, use this for the UserPermissionsRoleSpecificForm.
@@ -186,6 +185,8 @@ class UserPermissionsForm extends UserPermissionsRoleSpecificForm {
         }
       }
     }
+    // Clear cache.
+    drupal_flush_all_caches();
   }
 
   /**

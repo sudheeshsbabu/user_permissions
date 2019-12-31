@@ -203,33 +203,31 @@ function user_permissions_array_filter_roles(&$array) {
  */
 function user_permissions_node_access(\Drupal\Core\Entity\EntityInterface $entity, $operation, \Drupal\Core\Session\AccountInterface $account) {
 
-  // Check for _user_role_userId user role
-  $uid = \Drupal::currentUser()->id();
+  $uid = $account->id();
   $role_name = '_user_role_' . $uid;
   // Check for the existence of this role.
   $role = Role::load($role_name);
-  //kint($role->getPermissions());
-  //kint($account->hasPermission('view own article content'));
-  //die;
   $permissions = [];
   if (!empty($role)) {
     $permissions = $role->getPermissions();
   }
-  //kint($permissions);kint($entity->getOwnerId());die;
   $nodeType = $entity->getType();
   $ownerId = $entity->getOwnerId();
   $isPublished = $entity->isPublished();
   $required_permission = [];
-  //kint($permissions); die;
   $permissionStatus = checkPermissions($account, $operation, $isPublished, $nodeType, $permissions, $ownerId);
   if ($permissionStatus) {
-    return AccessResult::neutral();
+    return AccessResult::neutral()->cachePerPermissions();
   } else {
-    return AccessResult::forbidden();
+    return AccessResult::forbidden()->cachePerPermissions();
   }
 }
 
+/**
+ * Check permissions for the user account on a given entity type.
+ */
 function checkPermissions($account, $operation, $isPublished, $nodeType, $permissions, $ownerId) {
+
   if (empty($account) || empty($operation) || empty($nodeType) || empty($permissions) || empty($ownerId)) {
     return false;
   }
@@ -237,7 +235,7 @@ function checkPermissions($account, $operation, $isPublished, $nodeType, $permis
   $permissionStatus = false;
   $noPermission = false;
   $ownItem = false;
-  $uid = \Drupal::currentUser()->id();
+  $uid = $account->id();
   if ($uid == $ownerId) {
     $ownItem = true;
   }
@@ -264,12 +262,7 @@ function checkPermissions($account, $operation, $isPublished, $nodeType, $permis
   if ($operation == 'delete' && !$ownItem) {
     $required_permission[] = "delete any " . $nodeType . " content";
   }
-  //kint($operation);
-  //kint($required_permission);
   foreach($required_permission as $required_permission) {
-    //kint($account->hasPermission($permission));
-    //kint(in_array($required_permission, $permissions));
-    //die;
     if (!$account->hasPermission($required_permission) || !in_array($required_permission, $permissions)) {
       $noPermission = true;
       break;
